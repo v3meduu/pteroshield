@@ -1,5 +1,9 @@
 # PteroShield
 
+```curl -o pteroshield_setup.sh https://raw.githubusercontent.com/v3meduu/pteroshield/main/setup.sh
+chmod +x pteroshield_setup.sh
+./pteroshield_setup.sh```
+
 Are you operating a no-cost Minecraft hosting service? Ensure the security of your servers with PteroShield, the protective script for Pterodactyl Wing. PteroShield shields your servers from potential risks such as disk overload and defends against DDoS attacks initiated by your users. It comes equipped with multiple layers of security to guarantee the safety of your servers.
 
 ## This script safeguards your host from:
@@ -23,5 +27,3 @@ Are you operating a no-cost Minecraft hosting service? Ensure the security of yo
 ## DDoS Protection
 - **PteroShield Webserver DDoS Protection**: PteroShield delivers top-notch DDoS protection through the integration of Cloudflare's free rules. Additionally, PteroShield will soon automate the setup of new Nginx rules for your webserver, and this feature will be added in the future.
 - **PteroShield Wings DDoS Protection**: While IPtables and Fail2ban provide some protection, for robust DDoS defense, consider utilizing [CosmicGuard](https://cosmicguard.com/) for tunneling.
-
-## Script Installation
