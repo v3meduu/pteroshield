@@ -1,2 +1,9 @@
-# PteroShield 
-### Are you running a Minecraft hosting service without any cost? Make sure your servers are protected with PteroShield, the security script, for Pterodactyl Wing. With PteroShield your servers will be shielded from risks such as disk overload safeguarded against DDoS attacks, from your users and equipped with layers of security to ensure the safety of your servers.
+# PteroShield
+
+Are you operating a no-cost Minecraft hosting service? Ensure the security of your servers with PteroShield, the protective script for Pterodactyl Wing. PteroShield shields your servers from potential risks such as disk overload and defends against DDoS attacks initiated by your users. It comes equipped with multiple layers of security to guarantee the safety of your servers.
+
+## This script safeguards your host from:
+
+- DDoS attacks (including nodes used for DDoSing).
+- Disk filling (limited to 100GB).
+- DDoSing from nodes (network limitations, e.g., 50mbps, etc).
