@@ -11,11 +11,17 @@ Are you operating a no-cost Minecraft hosting service? Ensure the security of yo
 - **Basic DDoS Protection**: Includes fundamental IP tables rules (rate limiting, etc.), configurable to suit your needs.
 - **Fail2ban**: This script includes Fail2ban, providing log analytics, protection against brute force attacks, and dynamic firewall rule management.
 - **Bitcoin Mining Prevention**: This script includes measures to prevent Bitcoin mining. You can manually configure the CPU trigger for suspension in the `/root/pteroshield/config.yml` file.
-- 
+
 ## Features
 
 - **Configuration**: All settings can be conveniently configured in the `/root/pteroshield/config.yml` file.
 - **Discord Alert**: Discord webhook functionality for attacks can be enabled in the configuration file, and you can customize the webhook embed message to suit your needs.
 - **Auto Update**: PteroShield automatically updates itself daily to safeguard all hosts from vulnerabilities, exploits, and provide additional layers of security.
  - **Pterodactyl Wings Installation**: After completing the script installation, [PteroShield will prompt you to install Pterodactyl wings](https://github.com/pterodactyl-installer/pterodactyl-installer).
-- **Resource Monitoring**: Utilize Discord webhook graphs to monitor node statistics. This feature requires configuration in the `/root/pteroshield/config.yml` file.
+- **PteroShield Optimizations**: Additionally, it offers Minecraft Java and other egg optimizations, enabling you to run multiple servers simultaneously.
+
+## DDoS Protection
+- **PteroShield Webserver DDoS Protection**: PteroShield delivers top-notch DDoS protection through the integration of Cloudflare's free rules. Additionally, PteroShield will soon automate the setup of new Nginx rules for your webserver, and this feature will be added in the future.
+- **PteroShield Wings DDoS Protection**: While IPtables and Fail2ban provide some protection, for robust DDoS defense, consider utilizing [CosmicGuard](https://cosmicguard.com/) for tunneling.
+
+## Script Installation
