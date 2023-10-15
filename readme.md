@@ -1,4 +1,4 @@
-# PteroShield
+# PteroShield - Not ready yet.
 
 ```
 curl -o pteroshield_setup.sh https://raw.githubusercontent.com/v3meduu/pteroshield/main/setup.sh
