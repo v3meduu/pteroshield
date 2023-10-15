@@ -9,3 +9,4 @@ Are you operating a no-cost Minecraft hosting service? Ensure the security of yo
 - **DDoSing from nodes**: (network limitations, e.g., 50mbps, etc).
 - **Blacklists ports**: 465, 25, 26, 995, 143, 22, 110, 993, 587, 5222, 5269, and 5443 for security reasons.
 - **Basic DDoS Protection**: Includes fundamental IP tables rules (rate limiting, etc.), configurable to suit your needs.
+- **Fail2ban**: This script includes Fail2ban, providing log analytics, protection against brute force attacks, and dynamic firewall rule management.
