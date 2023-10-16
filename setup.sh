@@ -108,10 +108,11 @@ else
   echo "No swap file created."
 fi
 
-#!/bin/bash
-
-# Firewall Configuration
 echo "Configuring the firewall..."
+# Set the default policies to DROP
+sudo iptables -P INPUT DROP
+sudo iptables -P FORWARD DROP
+sudo iptables -P OUTPUT DROP
 
 # Allow loopback traffic
 sudo iptables -A INPUT -i lo -j ACCEPT
@@ -121,28 +122,21 @@ sudo iptables -A OUTPUT -o lo -j ACCEPT
 sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 # Allow ICMP traffic (ping)
-sudo iptables -A INPUT -p icmp -j ACCEPT
+sudo iptables -A INPUT -p icmp --icmp-type 8 -m conntrack --ctstate NEW -j ACCEPT
 
-# Prevent IP Spoofing
-# Drop all packets coming from the reserved IP ranges
-sudo iptables -A INPUT -s 0.0.0.0 -j DROP
-sudo iptables -A INPUT -s 127.0.0.0/8 -j DROP
-
-# Drop invalid connection states
-sudo iptables -A INPUT -m conntrack --ctstate INVALID -j DROP
-
-# Reject all other incoming packets with an ICMP error
-sudo iptables -A INPUT -j REJECT --reject-with icmp-port-unreachable
+# Rate limit incoming connections to SSH (Port 22)
+sudo iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --set
+sudo iptables -A INPUT -p tcp --dport 22 -m state --state NEW -m recent --update --seconds 60 --hitcount 4 -j DROP
 
 # Block specified ports
-blocked_ports=(465 25 26 995 143 22 110 993 587 5222 5269 5443)
+blocked_ports=(465 25 995 143 993 587 5222 5269 5443)
 for port in "${blocked_ports[@]}"; do
   sudo iptables -A INPUT -p tcp --dport "$port" -j DROP
   sudo iptables -A INPUT -p udp --dport "$port" -j DROP
 done
 
-# idk
-sudo iptables -A INPUT -i eth0 -p tcp --dport 80 -m conntrack --ctstate NEW -j DROP
+# Block all outbound traffic, except for established and related connections
+sudo iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 # Install iptables-persistent and save the rules
 echo "Installing iptables-persistent..."
