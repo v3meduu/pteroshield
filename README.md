@@ -17,6 +17,5 @@ Are you operating a no-cost Minecraft hosting service? Ensure the security of yo
 ## Features
 
 - **Configuration**: All settings can be conveniently configured in the `/root/pteroshield/config.yml` file.
-- **Discord Alert**: Discord webhook functionality for attacks can be enabled in the configuration file, and you can customize the webhook embed message to suit your needs.
 - **Auto Update**: PteroShield automatically updates itself daily to safeguard all hosts from vulnerabilities, exploits, and provide additional layers of security.
  - **Pterodactyl Wings Installation**: After completing the script installation, [PteroShield will prompt you to install Pterodactyl wings](https://github.com/pterodactyl-installer/pterodactyl-installer).
