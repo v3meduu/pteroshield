@@ -191,7 +191,6 @@ sudo netfilter-persistent reload
 # End of Firewall Configuration
 echo "Firewall configuration completed."
 
-
 # Set resource limits for Docker containers
 echo "Setting resource limits for Docker containers..."
 storage_limit="100G"
