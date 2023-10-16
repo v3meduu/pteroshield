@@ -1,15 +1,199 @@
 #!/bin/bash
 
-sudo apt-get install figlet
+# Version of the script
+SCRIPT_VERSION="3.0"
 
-# Check if figlet is installed
-if ! command -v figlet &> /dev/null; then
-    echo "Please install figlet to run this script."
-    exit 1
+# Log file for script output
+LOG_FILE="/var/log/pteroshield_script.log"
+
+# Function to add Fail2Ban rules
+configure_fail2ban() {
+  sudo apt-get update
+  sudo apt-get install fail2ban -y
+
+  # Create a custom jail.local file for Fail2Ban
+  sudo tee /etc/fail2ban/jail.local > /dev/null <<EOL
+[sshd]
+enabled = true
+port = ssh
+filter = sshd
+logpath = /var/log/auth.log
+maxretry = 3
+findtime = 600
+bantime = 3600
+
+[nginx-http-auth]
+enabled = true
+port = http,https
+filter = nginx-http-auth
+logpath = /var/log/nginx/error.log
+maxretry = 3
+findtime = 600
+bantime = 3600
+
+[custom-service-22]
+enabled = true
+port = 22
+filter = custom-service-22
+logpath = /var/log/custom-service-22.log
+maxretry = 3
+findtime = 600
+bantime = 3600
+
+[custom-service-80]
+enabled = true
+port = 80
+filter = custom-service-80
+logpath = /var/log/custom-service-80.log
+maxretry = 3
+findtime = 600
+bantime = 3600
+
+[custom-service-8443]
+enabled = true
+port = 8443
+filter = custom-service-8443
+logpath = /var/log/custom-service-8443.log
+maxretry = 3
+findtime = 600
+bantime = 3600
+
+[custom-service-9000]
+enabled = true
+port = 9000
+filter = custom-service-9000
+logpath = /var/log/custom-service-9000.log
+maxretry = 3
+findtime = 600
+bantime = 3600
+
+[custom-service-9876]
+enabled = true
+port = 9876
+filter = custom-service-9876
+logpath = /var/log/custom-service-9876.log
+maxretry = 5
+findtime = 600
+bantime = 3600
+EOL
+
+  # Restart Fail2Ban to apply the new configuration
+  sudo systemctl restart fail2ban
+}
+
+# Update the system
+sudo apt update
+sudo apt upgrade -y
+sudo apt autoremove -y
+
+# Create a swap file
+read -p "Do you want to create a swap file? (Y/N): " create_swap
+if [[ "$create_swap" == "Y" || "$create_swap" == "y" ]]; then
+  read -p "How many GB swap file do you want to allocate? " swap_size_gb
+
+  if [[ "$swap_size_gb" =~ ^[0-9]+$ ]]; then
+    swap_size_bytes=$((swap_size_gb * 1024 * 1024 * 1024))
+
+    sudo fallocate -l "$swap_size_bytes" /swapfile
+    sudo chmod 600 /swapfile
+    sudo mkswap /swapfile
+    sudo swapon /swapfile
+
+    echo "Swap file of $swap_size_gb GB created."
+  else
+    echo "Invalid input. Please provide a valid number of GB for the swap file."
+  fi
+else
+  echo "No swap file created."
 fi
 
-# The message to display
-message="PteroShield Installed"
+#!/bin/bash
 
-# Generate ASCII art text using figlet and display it
-figlet -f slant "$message"
+# Firewall Configuration
+echo "Configuring the firewall..."
+
+# Allow loopback traffic
+sudo iptables -A INPUT -i lo -j ACCEPT
+sudo iptables -A OUTPUT -o lo -j ACCEPT
+
+# Allow established and related connections
+sudo iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+
+# Allow ICMP traffic (ping)
+sudo iptables -A INPUT -p icmp -j ACCEPT
+
+# Prevent IP Spoofing
+# Drop all packets coming from the reserved IP ranges
+sudo iptables -A INPUT -s 0.0.0.0 -j DROP
+sudo iptables -A INPUT -s 127.0.0.0/8 -j DROP
+
+# Drop invalid connection states
+sudo iptables -A INPUT -m conntrack --ctstate INVALID -j DROP
+
+# Reject all other incoming packets with an ICMP error
+sudo iptables -A INPUT -j REJECT --reject-with icmp-port-unreachable
+
+# Block specified ports
+blocked_ports=(465 25 26 995 143 22 110 993 587 5222 5269 5443)
+for port in "${blocked_ports[@]}"; do
+  sudo iptables -A INPUT -p tcp --dport "$port" -j DROP
+  sudo iptables -A INPUT -p udp --dport "$port" -j DROP
+done
+
+# idk
+sudo iptables -A INPUT -i eth0 -p tcp --dport 80 -m conntrack --ctstate NEW -j DROP
+
+# Install iptables-persistent and save the rules
+echo "Installing iptables-persistent..."
+sudo apt-get install iptables-persistent -y
+
+# Save and reload the firewall rules
+echo "Saving and reloading firewall rules..."
+sudo netfilter-persistent save
+sudo netfilter-persistent reload
+
+# End of Firewall Configuration
+echo "Firewall configuration completed."
+
+
+# Set resource limits for Docker containers
+echo "Setting resource limits for Docker containers..."
+storage_limit="100G"
+bandwidth_limit="100mbit"
+
+for CONTAINER_UUID in $(docker ps -q); do
+  docker update --storage-opt size="$storage_limit" $CONTAINER_UUID
+  docker exec $CONTAINER_UUID tc qdisc add dev eth0 root tbf rate "$bandwidth_limit" burst 10kbit latency 50ms
+done
+
+# Configure Pterodactyl Wings game ports
+read -p "What ports are you going going to allocate for Pterodactyl Wings game ports (e.g., 5000-5999 recommended)? " wing_ports
+
+if [[ "$wing_ports" =~ ^[0-9]+-[0-9]+$ ]]; then
+  IFS='-' read -ra port_range <<< "$wing_ports"
+  start_port="${port_range[0]}"
+  end_port="${port_range[1]}"
+
+  sudo ufw allow "$start_port":"$end_port/tcp"
+  sudo ufw allow "$start_port":"$end_port/udp"
+
+  echo "Ports $start_port to $end_port for Pterodactyl Wings have been allowed (TCP and UDP)."
+else
+  echo "Invalid input. Please provide a valid range in the format of 'start-end' (e.g., 5000-5999)."
+fi
+
+# Configure Fail2Ban
+configure_fail2ban
+
+# Install Pterodactyl Wings
+read -p "Do you want to run the Pterodactyl Wings installation now? (Y/N): " INSTALL_WINGS
+if [ "$INSTALL_WINGS" == "Y" ] || [ "$INSTALL_WINGS" == "y" ]; then
+  echo "Installing Pterodactyl Wings..." | tee -a "$LOG_FILE"
+  bash <(curl -s https://pterodactyl-installer.se/) 2>&1 | tee -a "$LOG_FILE"
+  echo "Pterodactyl Wings installation completed." | tee -a "$LOG_FILE"
+else
+  echo "Pterodactyl Wings installation skipped. You can run it manually when ready." | tee -a "$LOG_FILE"
+fi
+
+echo "Script Version: $SCRIPT_VERSION installed!" | tee -a "$LOG_FILE"
+echo "PteroShield execution completed." | tee -a "$LOG_FILE"
