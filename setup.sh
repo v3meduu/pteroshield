@@ -87,6 +87,36 @@ sudo apt upgrade -y
 sudo apt autoremove -y
 sudo apt install nload
 
+# Update the package repository and install Squid
+sudo apt-get update
+sudo apt-get install squid -y
+
+# Backup the original Squid configuration file
+sudo cp /etc/squid/squid.conf /etc/squid/squid.conf.bak
+
+# Create a new Squid configuration file
+sudo tee /etc/squid/squid.conf <<EOL
+http_port 3128 transparent
+acl localnet src 0.0.0.0/0
+acl safe_ports port 80 443
+http_access allow localnet safe_ports
+http_access deny all
+visible_hostname proxy-server
+EOL
+
+# Restart Squid to apply the new configuration
+sudo systemctl restart squid
+
+# Enable IP forwarding to make the server act as a router
+if ! grep -q "net.ipv4.ip_forward" /etc/sysctl.conf; then
+  echo "net.ipv4.ip_forward=1" | sudo tee -a /etc/sysctl.conf
+fi
+sudo sysctl -p
+
+# Add an iptables rule to redirect HTTP traffic to Squid (port 3128)
+if ! sudo iptables -t nat -C PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3128 2>/dev/null; then
+  sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3128
+
 # Create a swap file
 read -p "Do you want to create a swap file? (Y/N): " create_swap
 if [[ "$create_swap" == "Y" || "$create_swap" == "y" ]]; then
@@ -138,9 +168,12 @@ done
 # Block all outbound traffic, except for established and related connections
 sudo iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
-# Install iptables-persistent and save the rules
+# Install iptables-persistent
 echo "Installing iptables-persistent..."
 sudo apt-get install iptables-persistent -y
+
+# Use tc to limit incoming traffic to 50Mbps for all IP addresses (replace eth0 with your network interface)
+sudo tc qdisc add dev eth0 root tbf rate 50mbit burst 10k
 
 # Save and reload the firewall rules
 echo "Saving and reloading firewall rules..."
