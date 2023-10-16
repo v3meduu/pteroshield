@@ -102,6 +102,8 @@ acl safe_ports port 80 443
 http_access allow localnet safe_ports
 http_access deny all
 visible_hostname proxy-server
+
+# Cache configurations
 cache_dir ufs /var/spool/squid 100 16 256
 maximum_object_size 32 MB
 refresh_pattern ^ftp:           1440  20% 10080
@@ -121,6 +123,7 @@ sudo sysctl -p
 # Add an iptables rule to redirect HTTP traffic to Squid (port 3128)
 if ! sudo iptables -t nat -C PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3128 2>/dev/null; then
   sudo iptables -t nat -A PREROUTING -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 3128
+fi
 
 # Create a swap file
 read -p "Do you want to create a swap file? (Y/N): " create_swap
