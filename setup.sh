@@ -85,6 +85,7 @@ EOL
 sudo apt update
 sudo apt upgrade -y
 sudo apt autoremove -y
+sudo apt install nload
 
 # Create a swap file
 read -p "Do you want to create a swap file? (Y/N): " create_swap
