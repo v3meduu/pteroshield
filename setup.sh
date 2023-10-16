@@ -102,6 +102,11 @@ acl safe_ports port 80 443
 http_access allow localnet safe_ports
 http_access deny all
 visible_hostname proxy-server
+cache_dir ufs /var/spool/squid 100 16 256
+maximum_object_size 32 MB
+refresh_pattern ^ftp:           1440  20% 10080
+refresh_pattern ^gopher:        1440  0%  1440
+refresh_pattern -i (/cgi-bin/|\?) 0 0% 0
 EOL
 
 # Restart Squid to apply the new configuration
