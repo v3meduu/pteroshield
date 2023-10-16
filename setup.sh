@@ -9,7 +9,7 @@ if ! command -v figlet &> /dev/null; then
 fi
 
 # The message to display
-message="PteroShield » The script isn't ready yet"
+message="PteroShield Installed"
 
 # Generate ASCII art text using figlet and display it
 figlet -f slant "$message"
