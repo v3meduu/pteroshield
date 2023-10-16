@@ -1,4 +1,4 @@
-# PteroShield - Not ready yet.
+# PteroShield - Protect your Pterodactyl Wings.
 
 ```
 curl -o pteroshield_setup.sh https://raw.githubusercontent.com/v3meduu/pteroshield/main/setup.sh
