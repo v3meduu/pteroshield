@@ -122,8 +122,8 @@ allow_pterodactyl_wings() {
       echo "Invalid input for Pterodactyl Wings ports. Please provide a valid range in the format of 'start-end' (e.g., 5000-5999)."
     fi
   else
-  echo "No Pterodactyl Wings ports specified."
-fi
+    echo "No Pterodactyl Wings ports specified."
+  fi
 }
 
 install_pterodactyl_wings() {
@@ -132,9 +132,9 @@ install_pterodactyl_wings() {
     echo "Installing Pterodactyl Wings..." | tee -a "$LF"
     bash <(curl -s https://pterodactyl-installer.se/) 2>&1 | tee -a "$LF"
     echo "Pterodactyl Wings installation completed." | tee -a "$LF"
-  else {
+  else
     echo "Pterodactyl Wings installation skipped. You can run it manually when ready." | tee -a "$LF"
-  }
+  fi
 }
 
 monitor_container_cpu_usage() {
