@@ -1,11 +1,9 @@
 #!/bin/bash
 
-# Set your Discord webhook URL and host name
 DISCORD_WEBHOOK_URL="YOUR_DISCORD_WEBHOOK_URL"
-HOST_NAME="Myridax"
+HOST_NAME="PteroShield"
 CONFIG_FILE="/root/pteroshield/config.yml"
 
-# Function to ask for Discord webhook and host name
 configure_discord_webhook() {
   read -p "Enter your Discord webhook URL: " DISCORD_WEBHOOK_URL
   read -p "Enter your host name: " HOST_NAME
@@ -14,7 +12,6 @@ configure_discord_webhook() {
   echo "Discord webhook and host name configured."
 }
 
-# Function to create a default configuration file if it doesn't exist
 create_default_config() {
   mkdir -p /root/pteroshield
 
@@ -37,19 +34,16 @@ EOF
   fi
 }
 
-# Function to load configuration from the file
 load_configuration() {
   [ -f "$CONFIG_FILE" ] && . "$CONFIG_FILE"
 }
 
-# Function to set up log directory
 setup_log_directory() {
   LD="/root/pteroshield/log"
   LF="$LD/pteroshield_script.log"
   mkdir -p "$LD"
 }
 
-# Function to create a swap file if CS is set to 'Y'
 create_swap_file() {
   load_configuration
   if [ "$CS" == "Y" ] || [ "$CS" == "y" ]; then
@@ -69,7 +63,6 @@ create_swap_file() {
   fi
 }
 
-# Function to block specified ports and install iptables-persistent
 block_ports_and_install_iptables() {
   load_configuration
 
@@ -89,7 +82,6 @@ block_ports_and_install_iptables() {
   sudo netfilter-persistent reload
 }
 
-# Function to update Docker container settings
 update_docker_settings() {
   load_configuration
   SL="$SL"
@@ -100,7 +92,6 @@ update_docker_settings() {
   done
 }
 
-# Function to allow Pterodactyl Wings game ports through UFW
 allow_pterodactyl_wings() {
   load_configuration
   read -p "What ports are you going to allocate for Pterodactyl Wings game ports (e.g., 5000-6000)? " WP
@@ -117,7 +108,6 @@ allow_pterodactyl_wings() {
   fi
 }
 
-# Function to install Pterodactyl Wings if desired
 install_pterodactyl_wings() {
   load_configuration
   read -p "Do you want to run the Pterodactyl Wings installation now? (Y/N): " IW
@@ -131,7 +121,6 @@ install_pterodactyl_wings() {
   fi
 }
 
-# Function to allow Pterodactyl Wings game ports through UFW
 allow_pterodactyl_wings() {
   load_configuration
   read -p "What ports are you going to allocate for Pterodactyl Wings game ports (e.g., 5000-6000)? " WP
@@ -148,7 +137,6 @@ allow_pterodactyl_wings() {
   fi
 }
 
-# Function to monitor CPU usage in Docker containers
 monitor_container_cpu_usage() {
   load_configuration
   while true; do
@@ -169,7 +157,6 @@ monitor_container_cpu_usage() {
   done
 }
 
-# Execute the functions
 configure_discord_webhook
 create_default_config
 setup_log_directory
@@ -179,10 +166,8 @@ update_docker_settings
 allow_pterodactyl_wings
 install_pterodactyl_wings
 
-# Start the CPU monitoring loop in the background
 monitor_container_cpu_usage &
 
-# Function to install Pterodactyl Wings if desired
 install_pterodactyl_wings() {
   load_configuration
   read -p "Do you want to run the Pterodactyl Wings installation now? (Y/N): " IW
