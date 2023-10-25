@@ -132,9 +132,9 @@ install_pterodactyl_wings() {
     echo "Installing Pterodactyl Wings..." | tee -a "$LF"
     bash <(curl -s https://pterodactyl-installer.se/) 2>&1 | tee -a "$LF"
     echo "Pterodactyl Wings installation completed." | tee -a "$LF"
-  else
+  else {
     echo "Pterodactyl Wings installation skipped. You can run it manually when ready." | tee -a "$LF"
-  fi
+  }
 }
 
 monitor_container_cpu_usage() {
@@ -168,19 +168,3 @@ allow_pterodactyl_wings
 install_pterodactyl_wings
 
 monitor_container_cpu_usage &
-
-install_pterodactyl_wings() {
-  load_configuration
-  read -p "Do you want to run the Pterodactyl Wings installation now? (Y/N): " IW
-
-  if [ "$IW" == "Y" ] || [ "$IW" == "y" ]; then
-    echo "Installing Pterodactyl Wings..." | tee -a "$LOG_FILE"
-    bash <(curl -s https://pterodactyl-installer.se/) 2>&1 | tee -a "$LOG_FILE"
-    echo "Pterodactyl Wings installation completed." | tee -a "$LOG_FILE"
-  else
-    echo "Pterodactyl Wings installation skipped. You can run it manually when ready." | tee -a "$LOG_FILE"
-  fi
-}
-
-echo "Script Version: $SCRIPT_VERSION installed!" | tee -a "$LOG_FILE"
-echo "PteroShield execution completed." | tee -a "$LOG_FILE"
