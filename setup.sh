@@ -121,9 +121,9 @@ allow_pterodactyl_wings() {
     else
       echo "Invalid input for Pterodactyl Wings ports. Please provide a valid range in the format of 'start-end' (e.g., 5000-5999)."
     fi
-  else {
-    echo "No Pterodactyl Wings ports specified."
-  }
+  else
+  echo "No Pterodactyl Wings ports specified."
+fi
 }
 
 install_pterodactyl_wings() {
