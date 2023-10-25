@@ -2,7 +2,7 @@
 
 # Set your Discord webhook URL and host name
 DISCORD_WEBHOOK_URL="YOUR_DISCORD_WEBHOOK_URL"
-HOST_NAME="YourHostName"
+HOST_NAME="Myridax"
 CONFIG_FILE="/root/pteroshield/config.yml"
 
 # Function to ask for Discord webhook and host name
