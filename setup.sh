@@ -146,7 +146,7 @@ monitor_container_cpu_usage() {
       container_name=$(echo "$line" | awk '{print $1}')
       cpu_usage=$(echo "$line" | awk -F'%' '{print $1}' | awk '{print $NF}')
 
-          if (( $(echo "$cpu_usage > 100" | BC_LINE_LENGTH=0 bc) )); then
+      if (( $(echo "$cpu_usage > 100" | BC_LINE_LENGTH=0 bc) )); then
         echo "High CPU usage detected in container: $container_name"
         message=":warning: High CPU usage detected in container *$container_name* on *$HOST_NAME*. CPU Usage: *$cpu_usage%*"
         curl -H "Content-Type: application/json" -d "{\"content\":\"$message\"}" "$DISCORD_WEBHOOK_URL"
