@@ -1,26 +1,29 @@
 #!/bin/bash
 
-CONFIG_FILE="/root/pteroshield/config.yml"
+CONFIG_FILE="/root/pulsar_security/config.yml"
+LOG_DIRECTORY="/root/pulsar_security/log"
+LOG_FILE="$LOG_DIRECTORY/pulsar_security_script.log"
 
+# Function to prompt for configuration
 prompt_for_configuration() {
   read -p "Enter your Discord webhook URL: " DISCORD_WEBHOOK_URL
   read -p "Enter your host name: " HOST_NAME
-  read -p "Enter the storage limit in GB (e.g., 100G) to prevent diskfills: " STORAGE_LIMIT
+  read -p "Enter the storage limit in GB (e.g., 100G) to prevent disk fills: " STORAGE_LIMIT
   read -p "Enter the network limit for each server in mbps (e.g., 100mbit): " NETWORK_LIMIT
   read -p "Do you want to allocate a swap file? (Y/N): " SWAP_FILE
   read -p "Do you want to block default ports? (Y/N): " BLOCK_PORTS
-  if [ "$BLOCK_PORTS" == "Y" ] || [ "$BLOCK_PORTS" == "y" ]; then
-    read -p "Enter the ports you want to block (e.g., 465 25 995): " -a BLOCKED_PORTS
+  if [[ "$BLOCK_PORTS" =~ ^[Yy]$ ]]; then
+    BLOCKED_PORTS=("22" "23" "3389")  # You can customize this list
   fi
   read -p "What ports are you going to allocate for Pterodactyl Wings game ports (e.g., 5000-6000)? " PTERODACTYL_WINGS_PORTS
   read -p "Do you want to run the Pterodactyl Wings installation now? (Y/N): " PTERODACTYL_WINGS_INSTALL
 
-  echo "DISCORD_WEBHOOK_URL=\"$DISCORD_WEBHOOK_URL\"" >> "$CONFIG_FILE"
+  echo "DISCORD_WEBHOOK_URL=\"$DISCORD_WEBHOOK_URL\"" > "$CONFIG_FILE"
   echo "HOST_NAME=\"$HOST_NAME\"" >> "$CONFIG_FILE"
   echo "STORAGE_LIMIT=\"$STORAGE_LIMIT\"" >> "$CONFIG_FILE"
   echo "NETWORK_LIMIT=\"$NETWORK_LIMIT\"" >> "$CONFIG_FILE"
   echo "SWAP_FILE=\"$SWAP_FILE\"" >> "$CONFIG_FILE"
-  if [ "$BLOCK_PORTS" == "Y" ] || [ "$BLOCK_PORTS" == "y" ]; then
+  if [[ "$BLOCK_PORTS" =~ ^[Yy]$ ]]; then
     echo "BLOCK_PORTS=\"$BLOCK_PORTS\"" >> "$CONFIG_FILE"
     for P in "${BLOCKED_PORTS[@]}"; do
       echo "BLOCKED_PORTS+=($P)" >> "$CONFIG_FILE"
@@ -31,8 +34,9 @@ prompt_for_configuration() {
   echo "Configuration completed and saved to $CONFIG_FILE."
 }
 
+# Function to create a default configuration
 create_default_config() {
-  mkdir -p /root/pteroshield
+  mkdir -p /root/pulsar_security
 
   if [ ! -f "$CONFIG_FILE" ]; then
     echo "Creating a default configuration file..."
@@ -51,19 +55,20 @@ EOF
   fi
 }
 
+# Function to load configuration from file
 load_configuration() {
   [ -f "$CONFIG_FILE" ] && . "$CONFIG_FILE"
 }
 
+# Function to set up log directory
 setup_log_directory() {
-  LD="/root/pteroshield/log"
-  LF="$LD/pteroshield_script.log"
-  mkdir -p "$LD"
+  mkdir -p "$LOG_DIRECTORY"
 }
 
+# Function to create a swap file based on user input
 create_swap_file() {
   load_configuration
-  if [ "$SWAP_FILE" == "Y" ] || [ "$SWAP_FILE" == "y" ]; then
+  if [[ "$SWAP_FILE" =~ ^[Yy]$ ]]; then
     read -p "How many GB swap file do you want to allocate? " SSG
     if [[ "$SSG" =~ ^[0-9]+$ ]]; then
       SSGB=$((SSG * 1024 * 1024 * 1024))
@@ -80,24 +85,18 @@ create_swap_file() {
   fi
 }
 
-block_ports_and_install_iptables() {
-  load_configuration
-
-  if [ "$BLOCK_PORTS" == "Y" ] || [ "$BLOCK_PORTS" == "y" ]; then
-    for P in "${BLOCKED_PORTS[@]}"; do
-      sudo iptables -A INPUT -p tcp --dport "$P" -j DROP
-      sudo iptables -A INPUT -p udp --dport "$P" -j DROP
-    done
-    echo "Default policies to DROP set for specified ports."
-  fi
-
-  echo "Installing iptables-persistent..."
-  sudo apt-get install iptables-persistent -y
-  echo "Saving blocked ports..."
-  sudo netfilter-persistent save
-  sudo netfilter-persistent reload
+# Function to block default ports and install iptables
+block_default_ports_and_install_iptables() {
+  BLOCKED_PORTS=("22" "23" "3389")  # You can customize this list
+  echo "Blocking default ports for SSH, Telnet, and RDP..."
+  for P in "${BLOCKED_PORTS[@]}"; do
+    sudo iptables -A INPUT -p tcp --dport "$P" -j DROP
+    sudo iptables -A INPUT -p udp --dport "$P" -j DROP
+  done
+  echo "Default ports blocked for SSH, Telnet, and RDP."
 }
 
+# Function to update Docker settings
 update_docker_settings() {
   load_configuration
   SL="$STORAGE_LIMIT"
@@ -108,6 +107,7 @@ update_docker_settings() {
   done
 }
 
+# Function to allow Pterodactyl Wings ports
 allow_pterodactyl_wings() {
   load_configuration
   if [ -n "$PTERODACTYL_WINGS_PORTS" ]; then
@@ -126,17 +126,19 @@ allow_pterodactyl_wings() {
   fi
 }
 
+# Function to install Pterodactyl Wings
 install_pterodactyl_wings() {
   load_configuration
-  if [ "$PTERODACTYL_WINGS_INSTALL" == "Y" ] || [ "$PTERODACTYL_WINGS_INSTALL" == "y" ]; then
-    echo "Installing Pterodactyl Wings..." | tee -a "$LF"
-    bash <(curl -s https://pterodactyl-installer.se/) 2>&1 | tee -a "$LF"
-    echo "Pterodactyl Wings installation completed." | tee -a "$LF"
+  if [[ "$PTERODACTYL_WINGS_INSTALL" =~ ^[Yy]$ ]]; then
+    echo "Installing Pterodactyl Wings..." | tee -a "$LOG_FILE"
+    bash <(curl -s https://pterodactyl-installer.se/) 2>&1 | tee -a "$LOG_FILE"
+    echo "Pterodactyl Wings installation completed." | tee -a "$LOG_FILE"
   else
-    echo "Pterodactyl Wings installation skipped. You can run it manually when ready." | tee -a "$LF"
+    echo "Pterodactyl Wings installation skipped. You can run it manually when ready." | tee -a "$LOG_FILE"
   fi
 }
 
+# Function to monitor container CPU usage continuously
 monitor_container_cpu_usage() {
   load_configuration
   while true; do
@@ -144,9 +146,9 @@ monitor_container_cpu_usage() {
 
     while read -r line; do
       container_name=$(echo "$line" | awk '{print $1}')
-      cpu_usage=$(echo "$line" | awk -F'%' '{print $1}' | awk '{print $NF}')
+      cpu_usage=$(echo "$line" | awk '{gsub(/%/, "", $NF); print $NF}')
 
-      if (( $(echo "$cpu_usage > 100" | BC_LINE_LENGTH=0 bc) )); then
+      if (( $(echo "$cpu_usage > 100" | bc) )); then
         echo "High CPU usage detected in container: $container_name"
         message=":warning: High CPU usage detected in container *$container_name* on *$HOST_NAME*. CPU Usage: *$cpu_usage%*"
         curl -H "Content-Type: application/json" -d "{\"content\":\"$message\"}" "$DISCORD_WEBHOOK_URL"
@@ -158,13 +160,16 @@ monitor_container_cpu_usage() {
 }
 
 # Main script
+
+# Set up configurations
 prompt_for_configuration
 create_default_config
 setup_log_directory
 create_swap_file
-block_ports_and_install_iptables
+block_default_ports_and_install_iptables
 update_docker_settings
 allow_pterodactyl_wings
 install_pterodactyl_wings
 
+# Continuous CPU monitoring in the background
 monitor_container_cpu_usage &
